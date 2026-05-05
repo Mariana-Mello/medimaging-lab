@@ -1,0 +1,26 @@
+/**
+ * data/rx.js
+ * Educational content: pipeline, code and explanations.
+ */
+'use strict';
+
+var DATA_rx = {
+  title:'Sistema Radiográfico Digital DR',
+  desc:'O exame mais comum em radiodiagnóstico. Raios-X de 40–150 kVp atravessam o corpo e são capturados por detectores CsI acoplados a fotodiodos a-Si em matriz TFT de 100–200 µm/pixel.',
+  specs:[{k:'Tensão',v:'40–150 kVp'},{k:'Corrente',v:'1–800 mA'},{k:'Detector',v:'CsI / a-Si TFT'},{k:'Pixel Pitch',v:'100–200 µm'}],
+  flow:[
+    {t:'Geração de Raios-X',d:'Filamento catódico emite elétrons. Campo de 40–150 kV acelera ao anodo rotativo de W/Re. Gera: Bremsstrahlung (espectro contínuo) + raios X característicos do W (59 e 69 keV).'},
+    {t:'Interação com Tecido',d:'Efeito Fotoelétrico (< 80 keV): fóton absorvido — osso atenua muito. Compton Scattering (> 80 keV): fóton desviado + elétron ejetado — gera espalhamento que degrada contraste.'},
+    {t:'Detecção Indireta CsI/a-Si',d:'CsI(Tl) colunar converte raios-X em luz verde (~550 nm). Fotodiodos a-Si coletam a luz como carga. TFT lê cada pixel e ADC converte a 14–16 bits.'},
+    {t:'Correção & MTF',d:'Subtração de dark field (offset) e divisão por flood field (ganho). Filtros de borda compensam espalhamento. MTF mede resolução real: tipicamente 50% a 2.5 lp/mm para CsI.'},
+    {t:'DICOM & Integração RIS',d:'SOPClassUID específico por modalidade. C-STORE envia ao PACS. Worklist MWL sincroniza com RIS. HL7 atualiza prontuário eletrônico.'},
+  ],
+  code:'<span class="cm"># Raio-X Digital — simulacao DR completa</span>\n\n<span class="kw">import</span> numpy <span class="kw">as</span> np\n<span class="kw">import</span> pydicom\n\n<span class="kw">class</span> <span class="cls">DigitalRadiography</span>:\n  <span class="cm"># mu linear (cm-1) a 60 keV — NIST tables</span>\n  MU = {\n    <span class="str">\'cortical_bone\'</span>: <span class="num">1.92</span>,\n    <span class="str">\'soft_tissue\'</span>  : <span class="num">0.21</span>,\n    <span class="str">\'fat\'</span>          : <span class="num">0.18</span>,\n    <span class="str">\'air\'</span>          : <span class="num">0.0002</span>,\n  }\n\n  <span class="kw">def</span> <span class="fn">simulate_exposure</span>(<span class="var">self</span>, body_map, kVp=<span class="num">80</span>):\n    atten = np.zeros(body_map.shape, dtype=np.float32)\n    <span class="kw">for</span> tissue, mu <span class="kw">in</span> <span class="var">self</span>.MU.items():\n      atten[body_map == tissue] = mu\n    <span class="cm"># Beer-Lambert integrado em 20 cm</span>\n    <span class="kw">return</span> np.exp(-atten * <span class="num">20</span>)\n\n  <span class="kw">def</span> <span class="fn">apply_csi_blur</span>(<span class="var">self</span>, image, sigma=<span class="num">0.8</span>):\n    <span class="cm"># MTF do CsI: espalhamento de luz</span>\n    <span class="kw">from</span> scipy.ndimage <span class="kw">import</span> gaussian_filter\n    <span class="kw">return</span> gaussian_filter(image, sigma=sigma)\n\n  <span class="kw">def</span> <span class="fn">flat_field_correction</span>(<span class="var">self</span>, raw, dark, flood):\n    <span class="cm"># Remove offset e normaliza por ganho</span>\n    <span class="kw">return</span> (raw - dark) / np.clip(flood - dark, <span class="num">1</span>, <span class="kw">None</span>)\n\n  <span class="kw">def</span> <span class="fn">to_dicom</span>(<span class="var">self</span>, pixels):\n    ds = pydicom.Dataset()\n    ds.SOPClassUID = <span class="str">\'1.2.840.10008.5.1.4.1.1.1\'</span>\n    ds.BitsAllocated = <span class="num">16</span>\n    ds.PhotometricInterpretation = <span class="str">\'MONOCHROME2\'</span>\n    ds.PixelData = pixels.astype(np.uint16).tobytes()\n    <span class="kw">return</span> ds',
+  explain:[
+    {tag:'MU dict',text:'<strong>Coeficientes de atenuação linear μ (cm⁻¹)</strong>: tabelados pelo NIST para 60 keV. Osso cortical (1.92) atenua ~9× mais que tecido mole (0.21) — por isso ossos aparecem brancos. Ar (0.0002) deixa quase todos os fótons passarem → pulmão fica preto na imagem.'},
+    {tag:'simulate_exposure',text:'<strong>Transmissão Beer-Lambert</strong>: <code>e^(−μ·x)</code> com x = 20 cm (tórax padrão). Na prática, o AEC (Controle Automático de Exposição) mede a atenuação real com câmaras iônicas e ajusta mAs automaticamente para cada paciente.'},
+    {tag:'apply_csi_blur',text:'<strong>MTF — Modulation Transfer Function</strong>: o CsI espalha a luz lateralmente ao converter raios-X em fótons visíveis — isso borra a imagem. O filtro gaussiano simula esse efeito. A MTF real é medida com fio de W ou borda de chumbo (edge method, IEC 62220-1).'},
+    {tag:'flat_field_correction',text:'<strong>Calibração flat-field</strong>: cada pixel do detector tem sensibilidade ligeiramente diferente. Subtrai o dark field (leitura sem radiação = offset) e divide pelo flood field (resposta a campo uniforme = ganho), normalizando toda a matriz.'},
+    {tag:'SOPClassUID / MONOCHROME2',text:'<strong>DICOM SOP Class</strong>: UID único por modalidade — CR = ...1.1, DR = ...1.7. <code>MONOCHROME2</code>: pixel alto = branco (osso). <code>MONOCHROME1</code> = invertido — usado em mamografia por convenção clínica histórica.'},
+  ]
+};;

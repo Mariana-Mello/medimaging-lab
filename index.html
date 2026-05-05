@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Plataforma educacional interativa com visualizações 3D de equipamentos de diagnóstico por imagem médica.">
+  <title>MedImaging Lab — Equipamentos de Saúde em 3D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/css/main.css">
+</head>
+<body>
+
+  <header>
+    <div class="logo">Med<span>Imaging</span>Lab</div>
+    <div class="badge">// FOR DEV STUDENTS</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-tag">// Equipamentos de Diagnóstico por Imagem</div>
+    <h1>Aprenda como cada <span>exame funciona</span><br>por dentro do código</h1>
+    <p>Visualizações 3D interativas + pipeline técnico + código real comentado.<br>
+       A física e a programação por trás dos equipamentos de saúde.</p>
+  </section>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Equipamentos">
+    <button class="tab active" data-key="mamografia"    role="tab" aria-selected="true" >🩻 Mamografia</button>
+    <button class="tab"        data-key="ressonancia"   role="tab" aria-selected="false">🧲 Ressonância</button>
+    <button class="tab"        data-key="rx"            role="tab" aria-selected="false">☢️ Raio-X</button>
+    <button class="tab"        data-key="densitometria" role="tab" aria-selected="false">🦴 Densitometria</button>
+    <button class="tab"        data-key="tomografia"    role="tab" aria-selected="false">🔬 Tomografia CT</button>
+  </nav>
+
+  <main class="main">
+
+    <div class="viewer-panel" role="region" aria-label="Visualizador 3D">
+      <div class="viewer-header">
+        <span class="viewer-title">// 3D Viewer — Arrastar para rotacionar</span>
+        <div class="status-dot" aria-hidden="true"></div>
+      </div>
+      <canvas id="c3d" height="420" aria-label="Modelo 3D do equipamento"></canvas>
+      <div class="viewer-controls">
+        <button class="ctrl-btn active" id="btn-rotate" onclick="App.toggleRotate()">⟳ Auto-rotate</button>
+        <button class="ctrl-btn"                        onclick="App.resetCamera()">⌂ Reset</button>
+        <button class="ctrl-btn"        id="btn-wire"   onclick="App.toggleWire()">◫ Wireframe</button>
+        <button class="ctrl-btn"        id="btn-xray"   onclick="App.toggleXray()">⬡ X-Ray</button>
+      </div>
+    </div>
+
+    <div class="info-panel" id="info-panel" role="region" aria-label="Informações do equipamento"></div>
+
+  </main>
+
+  <footer>
+    <span>MedImaging Lab — Plataforma educacional para estudantes de programação &amp; saúde</span>
+    <span class="footer-sep">·</span>
+    <a href="https://threejs.org" target="_blank" rel="noopener">Three.js r128</a>
+    <span class="footer-sep">·</span>
+    <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+  </footer>
+
+  <!-- Vendor -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Core engine (order matters) -->
+  <script src="src/js/core/renderer.js"></script>
+  <script src="src/js/core/controls.js"></script>
+  <script src="src/js/core/materials.js"></script>
+
+  <!-- 3D Models -->
+  <script src="src/js/models/mamografia.js"></script>
+  <script src="src/js/models/ressonancia.js"></script>
+  <script src="src/js/models/rx.js"></script>
+  <script src="src/js/models/densitometria.js"></script>
+  <script src="src/js/models/tomografia.js"></script>
+
+  <!-- Educational data -->
+  <script src="src/js/data/mamografia.js"></script>
+  <script src="src/js/data/ressonancia.js"></script>
+  <script src="src/js/data/rx.js"></script>
+  <script src="src/js/data/densitometria.js"></script>
+  <script src="src/js/data/tomografia.js"></script>
+
+  <!-- App entry point -->
+  <script src="src/js/app.js"></script>
+
+</body>
+</html>
